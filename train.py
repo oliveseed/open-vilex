@@ -14,7 +14,7 @@ from PIL import Image
 from vilex import ViLexPipeline
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-use_wandb = True
+use_wandb = False
 
 class ParquetDataset(Dataset):
     def __init__(self, dataframe, vae):
@@ -48,7 +48,7 @@ class ParquetDataset(Dataset):
         return latent, rgb
 
 if __name__ == "__main__":
-    model = ViLexPipeline(device=device)
+    model = ViLexPipeline(is_training=True, device=device)
     
     # Freeze params
     model.requires_grad_(False)

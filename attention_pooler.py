@@ -211,9 +211,9 @@ class MultiheadAttentionPoolingLayer(nn.Module):
         x_norm = self.pre_ca_norm(x)
         ca_out = self.ca(xq=x_norm, xkv=patch_tokens)
         # if not hasattr(self, 'debug_printed'):
-        # print(f"Residual (Query) Norm: {residual.norm(dim=-1).mean().item():.4f}")
-        # print(f"CA Out Norm: {ca_out.norm(dim=-1).mean().item():.4f}")
-        # # self.debug_printed = True
+        print(f"Residual (Query) Norm: {residual.norm(dim=-1).mean().item():.4f}")
+        print(f"CA Out Norm: {ca_out.norm(dim=-1).mean().item():.4f}")
+        # self.debug_printed = True
         x = residual + self.gamma_1 * ca_out
 
         residual = x
@@ -228,7 +228,7 @@ class AttentionPooler(nn.Module):
     def __init__(self, num_queries, embed_dim, patch_embed_dim, num_heads, num_layers, norm_eps=1e-5):
         super().__init__()
         self.query_embed = nn.Parameter(torch.randn(1, num_queries, embed_dim) * 0.02)
-        #self.abs_pos_embed = nn.Embedding(75, embed_dim)
+        self.abs_pos_embed = nn.Embedding(75, embed_dim)
         self.layers = nn.ModuleList([
             MultiheadAttentionPoolingLayer(
                 embed_dim=embed_dim,
@@ -255,10 +255,10 @@ class AttentionPooler(nn.Module):
     def forward(self, patch_tokens):
         B, T = patch_tokens.shape[0], patch_tokens.shape[1]
         query_emb = self.query_embed.expand(B, -1, -1)
-        #pos = torch.arange(75, device=patch_tokens.device)
-        #pos_emb = self.abs_pos_embed(pos)
+        pos = torch.arange(75, device=patch_tokens.device)
+        pos_emb = self.abs_pos_embed(pos)
 
-        #query_emb = query_emb + pos_emb.unsqueeze(0)
+        query_emb = query_emb + pos_emb.unsqueeze(0)
         for layer in self.layers:
             query_emb = layer(
                 x=query_emb,
